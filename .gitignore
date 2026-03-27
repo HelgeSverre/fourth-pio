@@ -1,0 +1,4 @@
+fourth
+*.o
+*.dSYM/
+.DS_Store

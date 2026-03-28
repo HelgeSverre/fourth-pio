@@ -16,14 +16,15 @@ static void vm_error(ForthVM *vm, const char *msg) {
 }
 
 static void vm_output(ForthVM *vm, const char *fmt, ...) {
+    int remaining = (int)sizeof(vm->output) - vm->output_pos;
+    if (remaining <= 0) return;
     va_list ap;
     va_start(ap, fmt);
-    vm->output_pos += vsnprintf(
-        vm->output + vm->output_pos,
-        sizeof(vm->output) - vm->output_pos,
-        fmt, ap
-    );
+    int written = vsnprintf(vm->output + vm->output_pos, remaining, fmt, ap);
     va_end(ap);
+    if (written > 0) {
+        vm->output_pos += (written < remaining) ? written : remaining - 1;
+    }
 }
 
 // ── Value constructors ──────────────────────────────────────────
@@ -697,6 +698,7 @@ static void w_map_delay(ForthVM *vm) {
         if (new_item.type == VAL_INSTR) {
             new_item.as.instr.delay = n.as.integer;
         }
+        if (list_store_next >= LIST_STORE_SIZE) { vm_error(vm, "map-delay: store full"); return; }
         int slot = list_store_next++;
         list_store[slot] = new_item;
         new_list.as.list.items[new_list.as.list.count++] = slot;
@@ -723,6 +725,7 @@ static void w_filter_op(ForthVM *vm) {
         Value *item = list_item(&list, i);
         if (!item || item->type != VAL_INSTR) continue;
         if (item->as.instr.op == target_op) {
+            if (list_store_next >= LIST_STORE_SIZE) { vm_error(vm, "filter-op: store full"); return; }
             int slot = list_store_next++;
             list_store[slot] = *item;
             new_list.as.list.items[new_list.as.list.count++] = slot;
@@ -742,12 +745,14 @@ static void w_list_concat(ForthVM *vm) {
     Value new_list = val_list();
     for (int i = 0; i < a.as.list.count; i++) {
         Value *item = list_item(&a, i);
+        if (list_store_next >= LIST_STORE_SIZE) { vm_error(vm, "concat: store full"); return; }
         int slot = list_store_next++;
         list_store[slot] = *item;
         new_list.as.list.items[new_list.as.list.count++] = slot;
     }
     for (int i = 0; i < b.as.list.count; i++) {
         Value *item = list_item(&b, i);
+        if (list_store_next >= LIST_STORE_SIZE) { vm_error(vm, "concat: store full"); return; }
         int slot = list_store_next++;
         list_store[slot] = *item;
         new_list.as.list.items[new_list.as.list.count++] = slot;
@@ -831,16 +836,21 @@ static void w_pio_assemble(ForthVM *vm) {
             arg = (pi->dest << 5) | encode_bit_count(pi->bits);
             break;
         case 4: // push/pull
+            // RP2040: bit7=R/W(0=push,1=pull), bit6=IfFull/IfEmpty, bit5=Block(1=stall)
             if (pi->is_pull)
-                arg = ((pi->ifempty ? 1 : 0) << 6) | ((pi->block ? 0 : 1) << 5) | (1 << 4);
+                arg = (1 << 7) | ((pi->ifempty ? 1 : 0) << 6) | ((pi->block ? 1 : 0) << 5);
             else
-                arg = ((pi->iffull ? 1 : 0) << 6) | ((pi->block ? 0 : 1) << 5);
+                arg = ((pi->iffull ? 1 : 0) << 6) | ((pi->block ? 1 : 0) << 5);
             break;
         case 5: // mov
             arg = (pi->dest << 5) | (pi->mov_op << 3) | pi->source;
             break;
         case 6: // irq
-            arg = (pi->mode << 5) | ((pi->rel ? 1 : 0) << 4) | pi->index;
+            // RP2040: bit7=0, bit6=Clr, bit5=Wait, bit4=Rel, bits3-0=Index
+            arg = ((pi->mode == 2 ? 1 : 0) << 6)   // clear
+                | ((pi->mode == 1 ? 1 : 0) << 5)    // wait
+                | ((pi->rel ? 1 : 0) << 4)
+                | (pi->index & 0x0F);
             break;
         case 7: // set
             arg = (pi->dest << 5) | (pi->value & 0x1F);

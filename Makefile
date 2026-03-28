@@ -11,7 +11,7 @@ demo: fourth
 	./fourth --demo
 
 test: tests/test_fourth
-	python3 tests/test_oracle.py
+	uv run --with adafruit-circuitpython-pioasm tests/test_oracle.py
 
 clean:
 	rm -f fourth tests/test_fourth

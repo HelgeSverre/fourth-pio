@@ -111,10 +111,9 @@ make            # builds ./fourth
 ./fourth --demo # run demos
 ```
 
-Oracle tests (requires Python 3):
+Oracle tests (requires [uv](https://docs.astral.sh/uv/)):
 
 ```
-pip install adafruit-pioasm
 make test
 ```
 

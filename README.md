@@ -1,6 +1,6 @@
 # Fourth PIO
 
-An experiment in concatenative PIO programming. A tiny [Forth](https://en.wikipedia.org/wiki/Forth_(programming_language)) interpreter (~1,150 lines of C) where RP2040 [PIO](https://www.raspberrypi.com/documentation/microcontrollers/rp2040.html#pio) instructions are structured data on a stack, not packed integers.
+An experiment in concatenative PIO programming. A tiny [Forth](https://en.wikipedia.org/wiki/Forth_(programming_language)) interpreter (~1,150 lines of C) where RP2040 [PIO](https://en.wikipedia.org/wiki/RP2040) instructions are structured data on a stack, not packed integers.
 
 > **Fair warning:** This is an exploration, not a tool. I have not tested it on hardware. I have no meaningful experience with PIO or embedded development. The assembler output matches `adafruit_pioasm` across 62 test cases, but that is the extent of verification. Use at your own risk.
 

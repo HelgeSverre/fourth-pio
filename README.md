@@ -6,7 +6,7 @@ An experiment in concatenative PIO programming. A tiny Forth interpreter (~1,150
 
 ## The idea
 
-Concatenative languages should map naturally to PIO instruction manipulation -- postfix modifiers, stack-based composition, lists as program fragments. This explores that idea. It was built after noticing the Forth row was empty in a [PIO tooling comparison](https://github.com/HelgeSverre/sema-lisp).
+Concatenative languages should map naturally to PIO instruction manipulation — postfix modifiers, stack-based composition, lists as program fragments. This explores that idea. Every survey of PIO tooling mentions Forth as a natural fit, but nobody seems to have actually built one. So here it is.
 
 ```forth
 [ pio-set pindirs 1
@@ -99,7 +99,7 @@ Test cases cover all 9 PIO opcodes, all 8 jump conditions, all source/destinatio
 | CircuitPython `adafruit_pioasm` | Text-to-integers assembler | Used as the test oracle |
 | Rust `pio` crate | Typed instruction structs, compile-time assembly | The idea of a structured intermediate representation (closest existing analogue) |
 | C SDK `pio_encode_*` | One-shot encode functions returning uint16 | Bit-field layout reference |
-| [Sema Lisp](https://github.com/HelgeSverre/sema-lisp) | Same author; PIO instructions as S-expressions with named fields | The overall approach -- Fourth PIO is the concatenative version of the same idea |
+| [Sema Lisp](https://github.com/HelgeSverre/sema) | Same author; PIO instructions as S-expressions with named fields | The overall approach -- Fourth PIO is the concatenative version of the same idea |
 
 ---
 
